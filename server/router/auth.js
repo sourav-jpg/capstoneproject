@@ -195,4 +195,40 @@ router.post("/entersample", async (req, res) => {
 
 // }
 
+//regEdit
+router.get('/editData' , async (req, res) => {
+  try {
+      const samples = await User.find().lean()
+      res.json({
+          error: false,
+          message: "",
+          data: samples
+      })
+  }
+  catch (err) {
+      next(err)
+  }
+})
+
+router.put('/edituser',async (req, res, next) => {
+  try {
+      let { _id, name, email, role } = req.body
+      await User.updateOne({ _id }, {
+          $set: {
+              name,
+              email,
+              role
+          }
+      })
+      
+      res.json({
+          error: false,
+          message: 'edit success',
+          data: { name, email, role }
+      })
+  } catch (err) {
+      next(err)
+  }
+})
+
 module.exports = router;
