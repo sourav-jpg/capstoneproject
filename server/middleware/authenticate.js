@@ -2,10 +2,11 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../model/dataSchema");
 
-const Authenticate = async (req, res, next) => {
+const  Authenticate = async (req, res, next) => {
+  const {token} = req.body;
   try {
-    const token = req.cookies.jwtoken;
-    const verifyToken = jwt.verify(token, process.env.SECRET_KEY);
+
+   if(token){ const verifyToken = jwt.verify(token, process.env.SECRET_KEY);
     const rootUser = await User.findOne({
       _id: verifyToken._id 
     });
@@ -25,7 +26,12 @@ const Authenticate = async (req, res, next) => {
       throw new Error("user not found");
     }
 
-    next();
+    next();} else{
+res.json({
+  error:true,
+  message:"user not authenticated"
+})
+    }
   } catch (err) {
     console.log("catch");
     res.status(401).json("user is not authenticated");

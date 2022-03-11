@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const jwt = require("jsonwebtoken");
+const loggers=require("../config/logger")
 
 
 const cookieParser = require("cookie-parser");
@@ -10,16 +11,15 @@ require("../db/conn");
 
 const User = require("../model/dataSchema");
 
+
 router.use(cookieParser());
 
-//Home routes
 router.get("/", (req, res) => {
   res.send("home");
 });
 
 
 
-//register routes
 router.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body;
   if ((!name, !email, !password, !role)) {
@@ -55,13 +55,11 @@ router.post("/register", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
+    console.log("tryy")
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        error: "fill the data",
-      });
-    }
+    
+    
 
     const userLogin = await User.findOne({ email: email });
 console.log(userLogin._id)
@@ -73,22 +71,25 @@ console.log(userLogin._id)
     );
 
 
-    //storing cookie
-    res.cookie("jwtoken", token, {
-      expires: new Date(Date.now() + 8640000),
-      httpOnly: true,
-    });
-
+    
+console.log("===========tt",token)
     if (!userLogin || userLogin.password !== password) {
       res.status(400).json({ message: "user error" });
+    loggers.error("user error")
+
     } else {
       res.status(200).json({
         message: "user signed in successfully",
         role: userLogin.role,
         token:token,
-      });
+      })
+    
+
     }
   } catch (err) {
+    res.redirect("/error")
+    loggers.error("fill data")
+
     console.log(err);
   }
 });
@@ -97,105 +98,12 @@ console.log(userLogin._id)
 
 
 
-router.get("/details", authenticate, (req, res) => {
-
+router.post("/details", authenticate, (req, res) => {
+const  {token} = req.body
 });
 
 
 
-// router.get("/sample",  (req, res) => {
-  
-
-// });
-
-
-
-//logout
-router.get("/logout", (req, res) => {
-  console.log("hello logout");
-  res.clearCookie("jwtoken", { path: "/" });
-  res.status(200).send("user logout");
-});
-
-router.post("/entersample", async (req, res) => {
-  const { heamatology, glucometry, thyroid, id, editId } = req.body;
-  try {
-    let updatedUser;
-
-    if (editId === 1) {
-      updatedUser = await User.updateOne(
-        { _id: id },
-        {
-          $set: {
-            heamatology: {
-              haemoglobin: heamatology?.haemoglobin,
-              neutrophils: heamatology?.neutrophils,
-              eosinophiles: heamatology?.eosinophiles,
-              basophills: heamatology?.basophills,
-              pcv: heamatology?.pcv,
-              wbc: heamatology?.wbc,
-              lymphocytes: heamatology?.wbc,
-              monocytes: heamatology?.lymphocytes,
-              rbc: heamatology?.rbc,
-              mcv: heamatology?.mcv,
-            },
-          },
-        }
-      );
-    } else if (editId === 2) {
-      updatedUser = await User.updateOne(
-        { _id: id },
-        {
-          $set: {
-            glucometry: {
-              fbs: glucometry?.fbs,
-              ppbs: glucometry?.ppbs,
-              gh: glucometry?.gh,
-              calcium: glucometry?.calcium,
-            },
-          },
-        }
-      );
-    } else if (editId === 3) {
-      console.log("3-====>");
-
-      updatedUser = await User.updateOne(
-        { _id: id },
-        {
-          $set: {
-            thyroid: {
-              tri: thyroid?.tri,
-              thyroxine: thyroid?.thyroxine,
-              tsh: thyroid?.tsh,
-            },
-          },
-        }
-      );
-    }
-    // if(glucometry)
-
-    //  if(Thyroid)
-
-    if (updatedUser) {
-      return res.status(200).json({
-        message: "updated successfully ",
-        output: updatedUser,
-      });
-    }
-  } catch (err) {
-    console.log("error =======================>", err);
-
-    res
-      .status(500)
-      .json({ details: err.message, message: "Something went wrong" });
-  }
-});
-
-// router.get("/admin") , (req, res) => {
-
-// }
-
-//regEdit
 router.get('/editData' , async (req, res) => {
   try {
       const samples = await User.find().lean()
